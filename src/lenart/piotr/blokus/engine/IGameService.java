@@ -1,6 +1,7 @@
 package lenart.piotr.blokus.engine;
 
 import lenart.piotr.blokus.basic.Vector2i;
+import lenart.piotr.blokus.engine.puzzle.IPuzzle;
 
 import java.util.List;
 
@@ -21,4 +22,5 @@ public interface IGameService {
     // Game
     public List<IPuzzle> getPuzzleList(int index);
     public void placePuzzle(IGameClient client, IPuzzle puzzle, Vector2i position);
+    public void giveUp(IGameClient client);
 }
