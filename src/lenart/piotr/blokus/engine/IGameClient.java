@@ -17,11 +17,12 @@ public interface IGameClient {
     public void playerGaveUp(int index);
     public boolean active();
     public void placedPuzzle(int playerIndex, Vector2i position, IPuzzle puzzle);
+    public void changePlayerCount(int count);
 
     // Actions to IGameService
     public List<IPuzzle> getPuzzleList(int index);
     public void placePuzzle(IPuzzle puzzle, Vector2i position);
-    public int getPlayersCount();
+    public int getMaxPlayersCount();
     public String getPlayerName(int index);
     public void giveUp();
 }

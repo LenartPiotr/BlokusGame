@@ -37,6 +37,7 @@ public class GameService implements IGameService {
         if (clients.contains(client)) throw new WrongActionException("This client already exists in game");
         clients.add(client);
         client.setIndex(clients.size() - 1);
+        clients.forEach(c -> c.changePlayerCount(clients.size()));
         return clients.size() - 1;
     }
 
@@ -58,6 +59,7 @@ public class GameService implements IGameService {
             for (int i = index; i < clients.size(); i++) {
                 clients.get(i).setIndex(i);
             }
+            clients.forEach(c -> c.changePlayerCount(clients.size()));
         }
     }
 
