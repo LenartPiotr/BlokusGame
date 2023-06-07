@@ -1,7 +1,7 @@
 package lenart.piotr.blokus.engine.game;
 
 import lenart.piotr.blokus.basic.Vector2i;
-import lenart.piotr.blokus.engine.IGameClient;
+import lenart.piotr.blokus.engine.client.IGameClient;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
 import lenart.piotr.blokus.engine.puzzle.IPuzzle;
 

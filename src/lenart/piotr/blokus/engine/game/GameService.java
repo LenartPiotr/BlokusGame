@@ -1,21 +1,29 @@
 package lenart.piotr.blokus.engine.game;
 
 import lenart.piotr.blokus.basic.Vector2i;
-import lenart.piotr.blokus.engine.IGameClient;
+import lenart.piotr.blokus.engine.client.IGameClient;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
+import lenart.piotr.blokus.engine.game.endgame.EndgameClientData;
+import lenart.piotr.blokus.engine.game.endgame.EndgameData;
 import lenart.piotr.blokus.engine.puzzle.IPuzzle;
 import lenart.piotr.blokus.engine.puzzle.PuzzleGenerator;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class GameService implements IGameService {
-    private List<IGameClient> clients;
+    private final List<IGameClient> clients;
     private int playersCount;
     private Vector2i boardSize;
     private boolean inGame;
     private ClientData[] clientsData;
     private int turn;
     private int[][] board;
+
+    public GameService() {
+        clients = new ArrayList<>();
+    }
 
     @Override
     public void setBoardSize(Vector2i size) throws WrongActionException {
@@ -170,7 +178,10 @@ public class GameService implements IGameService {
 
     private void endgame(){
         EndgameData endgameData = new EndgameData();
-        // fill endgame data
+        for (int i = 0; i < playersCount; i++) {
+            endgameData.add(clients.get(i).getName(), clientsData[i].pointsLeft());
+        }
+        endgameData.sort(Comparator.comparingInt(EndgameClientData::getPoints));
         clients.forEach(c -> c.endgame(endgameData));
         inGame = false;
         clients.removeIf(c -> !c.active());

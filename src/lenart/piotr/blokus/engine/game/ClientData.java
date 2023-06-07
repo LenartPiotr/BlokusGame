@@ -14,6 +14,14 @@ public class ClientData {
         pass = false;
     }
 
+    public int pointsLeft() {
+        int sum = 0;
+        for (IPuzzle p: puzzles) {
+            sum += p.size();
+        }
+        return sum;
+    }
+
     public void setPass(){
         pass = true;
     }

@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SimplePuzzle implements IPuzzle{
 
-    private Vector2i[] fields;
+    private final Vector2i[] fields;
     private int rotatedRight;
     private boolean flippedHorizontally;
 
@@ -119,6 +119,11 @@ public class SimplePuzzle implements IPuzzle{
             return checkLists(fields, s.fields);
         }
         return checkLists(fields, copy.getFields());
+    }
+
+    @Override
+    public int size() {
+        return fields.length;
     }
 
     @Override

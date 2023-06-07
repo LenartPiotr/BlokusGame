@@ -1,7 +1,8 @@
-package lenart.piotr.blokus.engine;
+package lenart.piotr.blokus.engine.client;
 
 import lenart.piotr.blokus.basic.Vector2i;
-import lenart.piotr.blokus.engine.game.EndgameData;
+import lenart.piotr.blokus.engine.exceptions.WrongActionException;
+import lenart.piotr.blokus.engine.game.endgame.EndgameData;
 import lenart.piotr.blokus.engine.puzzle.IPuzzle;
 
 import java.util.List;
@@ -20,9 +21,9 @@ public interface IGameClient {
     public void changePlayerCount(int count);
 
     // Actions to IGameService
-    public List<IPuzzle> getPuzzleList(int index);
-    public void placePuzzle(IPuzzle puzzle, Vector2i position);
+    public List<IPuzzle> getPuzzleList(int index) throws WrongActionException;
+    public void placePuzzle(IPuzzle puzzle, Vector2i position) throws WrongActionException;
     public int getMaxPlayersCount();
-    public String getPlayerName(int index);
-    public void giveUp();
+    public String getPlayerName(int index) throws WrongActionException;
+    public void giveUp() throws WrongActionException;
 }

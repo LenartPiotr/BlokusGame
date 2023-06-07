@@ -12,4 +12,5 @@ public interface IPuzzle {
     public Vector2i getMaxBound();
     public IPuzzle copy();
     public boolean isTheSame(IPuzzle puzzle);
+    public int size();
 }
