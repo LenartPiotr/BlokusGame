@@ -78,8 +78,13 @@ public class GameService implements IGameService {
     }
 
     @Override
-    public int getPlayersCount() {
+    public int getMaxPlayersCount() {
         return playersCount;
+    }
+
+    @Override
+    public int getPlayersCount() {
+        return clients.size();
     }
 
     @Override

@@ -1,5 +1,5 @@
 package lenart.piotr.blokus.basic;
 
-public interface ICallback<T> {
+public interface ICallback1<T> {
     public void run(T arg);
 }

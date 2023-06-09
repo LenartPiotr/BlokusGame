@@ -16,6 +16,7 @@ public interface IGameService {
     public int registerClient(IGameClient client) throws WrongActionException;
     public void unregisterClient(IGameClient client) throws WrongActionException;
     public String getClientName(int clientIndex) throws WrongActionException;
+    public int getMaxPlayersCount();
     public int getPlayersCount();
 
     // Initialize game

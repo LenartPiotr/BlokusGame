@@ -24,6 +24,7 @@ public interface IGameClient {
     public List<IPuzzle> getPuzzleList(int index) throws WrongActionException;
     public void placePuzzle(IPuzzle puzzle, Vector2i position) throws WrongActionException;
     public int getMaxPlayersCount();
+    public int getPlayersCount();
     public String getPlayerName(int index) throws WrongActionException;
     public void giveUp() throws WrongActionException;
 }
