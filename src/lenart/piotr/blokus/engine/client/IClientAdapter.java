@@ -25,4 +25,5 @@ public interface IClientAdapter {
     public int getPlayersCount();
     public String getPlayerName(int index) throws WrongActionException;
     public void giveUp() throws WrongActionException;
+    public Vector2i getBoardSize();
 }

@@ -25,6 +25,10 @@ public class Vector2i {
 
     public boolean inRange(Vector2i bound) { return _x>=0 && _y>=0 && _x<bound._x && _y<bound._y; }
 
+    public static Vector2i over(Vector2i a, Vector2i b, IFunction method) {
+        return new Vector2i(method.run(a._x, b._x), method.run(a._y, b._y));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -41,5 +45,9 @@ public class Vector2i {
     @Override
     public String toString() {
         return "(" + _x + ", " + _y + ")";
+    }
+
+    public static interface IFunction {
+        public int run(int a, int b);
     }
 }

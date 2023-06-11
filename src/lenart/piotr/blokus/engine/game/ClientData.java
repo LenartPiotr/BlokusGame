@@ -34,6 +34,10 @@ public class ClientData {
         return copy;
     }
 
+    public int puzzlesCount() {
+        return puzzles.size();
+    }
+
     public boolean passed(){
         return pass;
     }

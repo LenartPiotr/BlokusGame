@@ -131,4 +131,9 @@ public class LocalClientAdapter implements IGameClient, IClientAdapter{
     public void giveUp() throws WrongActionException {
         gameService.giveUp(this);
     }
+
+    @Override
+    public Vector2i getBoardSize() {
+        return gameService.getBoardSize();
+    }
 }

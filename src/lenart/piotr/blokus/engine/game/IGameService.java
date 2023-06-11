@@ -11,6 +11,7 @@ public interface IGameService {
     // Settings
     public void setBoardSize(Vector2i size) throws WrongActionException;
     public void setPlayersCount(int count) throws WrongActionException;
+    public Vector2i getBoardSize();
 
     // Players
     public int registerClient(IGameClient client) throws WrongActionException;

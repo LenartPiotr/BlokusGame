@@ -20,6 +20,7 @@ public class GameService implements IGameService {
     private ClientData[] clientsData;
     private int turn;
     private int[][] board;
+    private int defaultPuzzlePiecesCount;
 
     public GameService() {
         clients = new ArrayList<>();
@@ -37,6 +38,11 @@ public class GameService implements IGameService {
         if (inGame) throw new WrongActionException("Cannot change players count in game");
         if (count < 1) throw new WrongActionException("Game must have at least one player");
         playersCount = count;
+    }
+
+    @Override
+    public Vector2i getBoardSize() {
+        return new Vector2i(boardSize);
     }
 
     @Override
@@ -96,6 +102,7 @@ public class GameService implements IGameService {
         for (int i = 0; i < playersCount; i++) {
             clientsData[i] = new ClientData(generator.getDefaultPuzzleSet());
         }
+        defaultPuzzlePiecesCount = clientsData[0].puzzlesCount();
         board = new int[boardSize.x()][boardSize.y()];
         for (int x = 0; x < boardSize.x(); x++)
             for (int y = 0; y < boardSize.y(); y++){
@@ -124,8 +131,8 @@ public class GameService implements IGameService {
         int index = getClientIndex(client);
         if (index < 0) throw new WrongActionException("This client does not belong to game");
         if (index != turn) throw new WrongActionException("Not your turn");
-        if (!puzzle.getMinBound().inRange(boardSize)) throw new WrongActionException("Puzzle is not in board range");
-        if (!puzzle.getMaxBound().inRange(boardSize)) throw new WrongActionException("Puzzle is not in board range");
+        if (!puzzle.getMinBound().add(position).inRange(boardSize)) throw new WrongActionException("Puzzle is not in board range");
+        if (!puzzle.getMaxBound().add(position).inRange(boardSize)) throw new WrongActionException("Puzzle is not in board range");
         int cornerConnectionsCount = 0;
         int sideConnectionsCount = 0;
         Vector2i[] sideVectors = new Vector2i[]{
@@ -143,7 +150,22 @@ public class GameService implements IGameService {
                 for (Vector2i cv : cornerVectors)
                     if (getBoardValueOrDefault(pos.add(cv).add(position), -1) == index) cornerConnectionsCount++;
         }
-        if (cornerConnectionsCount == 0) throw new WrongActionException("Your puzzle must have corner connection with another your puzzle");
+        if (cornerConnectionsCount == 0) {
+            if (clientsData[index].puzzlesCount() == defaultPuzzlePiecesCount) {
+                boolean corner = false;
+                for (Vector2i pos : puzzle.getFields()) {
+                    Vector2i pos2 = pos.add(position);
+                    if ((pos2.x() == 0 || pos2.x() == boardSize.x() - 1) && (pos2.y() == 0 || pos2.y() == boardSize.y() - 1)) {
+                        corner = true;
+                        break;
+                    }
+                }
+                if (!corner) {
+                    throw new WrongActionException("Your first puzzle must be placed at board corner");
+                }
+            } else
+                throw new WrongActionException("Your puzzle must have corner connection with another your puzzle");
+        }
         if (sideConnectionsCount != 0) throw new WrongActionException("Your puzzle can not have side connection with another your puzzle");
         if (!clientsData[index].removePuzzle(puzzle)) throw new WrongActionException("This puzzle does not exists in your inventory");
         for (Vector2i pos : puzzle.getFields()) {

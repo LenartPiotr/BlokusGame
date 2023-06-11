@@ -14,18 +14,25 @@ public class GameWindow extends JFrame{
 
         setTitle("Blokus game");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        pack();
         setVisible(true);
-        setSize(400, 300);
+        setMinimumSize(new Dimension(400, 300));
 
         mainPanel.setLayout(new GridLayout());
         add(mainPanel);
 
-        setWaitingPanel();
+        // setWaitingPanel();
+        setGamePanel();
     }
 
     private void setWaitingPanel() {
         mainPanel.removeAll();
         mainPanel.add(new WaitingPanel(clientAdapter));
+        pack();
+    }
+
+    private void setGamePanel() {
+        mainPanel.removeAll();
+        mainPanel.add(new GamePanel(clientAdapter));
+        pack();
     }
 }
