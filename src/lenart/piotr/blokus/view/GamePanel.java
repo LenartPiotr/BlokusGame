@@ -1,8 +1,10 @@
 package lenart.piotr.blokus.view;
 
+import lenart.piotr.blokus.basic.ICallback0;
 import lenart.piotr.blokus.basic.Vector2i;
 import lenart.piotr.blokus.engine.client.IClientAdapter;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
+import lenart.piotr.blokus.engine.game.endgame.EndgameData;
 import lenart.piotr.blokus.engine.puzzle.IPuzzle;
 
 import javax.swing.*;
@@ -18,18 +20,22 @@ public class GamePanel extends JPanel {
     private JLabel turnLabel;
     private Board board;
     private List<JPanel> userPuzzlePanels;
+    private JPanel contentPanel;
 
     private final JLabel[] playersNick;
     private final int playerIndex;
     private final int playersCount;
     private final boolean[] surrender;
 
+    private final ICallback0 onExit;
+
     private int turn;
 
     private final IClientAdapter clientAdapter;
 
-    public GamePanel(IClientAdapter clientAdapter) {
+    public GamePanel(IClientAdapter clientAdapter, ICallback0 onExit) {
         this.clientAdapter = clientAdapter;
+        this.onExit = onExit;
         playerIndex = clientAdapter.getIndex();
         playersCount = clientAdapter.getMaxPlayersCount();
         playersNick = new JLabel[playersCount];
@@ -75,6 +81,8 @@ public class GamePanel extends JPanel {
                 errorMessage.setText(e.getTextToDisplay());
             }
         });
+
+        clientAdapter.onEndgame(this::setEndGame);
     }
 
     private void initializeComponents() {
@@ -92,20 +100,20 @@ public class GamePanel extends JPanel {
         }
         header.add(turnLabel);
 
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.X_AXIS));
-        mainPanel.add(content);
+        contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.X_AXIS));
+        mainPanel.add(contentPanel);
 
         board = new Board(clientAdapter.getBoardSize());
         Dimension boardDimension = new Dimension(401, 401);
         board.setPreferredSize(boardDimension);
         board.setMaximumSize(boardDimension);
         board.setMinimumSize(boardDimension);
-        content.add(board);
+        contentPanel.add(board);
 
         JPanel puzzleMainPanel = new JPanel();
         puzzleMainPanel.setLayout(new BoxLayout(puzzleMainPanel, BoxLayout.X_AXIS));
-        content.add(puzzleMainPanel);
+        contentPanel.add(puzzleMainPanel);
 
         userPuzzlePanels = new ArrayList<>();
         try {
@@ -156,6 +164,13 @@ public class GamePanel extends JPanel {
             }
         });
         footer.add(surrenderButton);
+    }
+
+    private void setEndGame(EndgameData data) {
+        turn = -1;
+        contentPanel.add(new EndgamePanel(data, this.onExit));
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
     private void setPuzzlesView(JPanel panel, List<IPuzzle> list, boolean onclick, int index) throws WrongActionException {

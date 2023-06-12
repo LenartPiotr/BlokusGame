@@ -20,19 +20,19 @@ public class GameWindow extends JFrame{
         mainPanel.setLayout(new GridLayout());
         add(mainPanel);
 
-        // setWaitingPanel();
-        setGamePanel();
+        setWaitingPanel();
     }
 
     private void setWaitingPanel() {
         mainPanel.removeAll();
         mainPanel.add(new WaitingPanel(clientAdapter));
         pack();
+        clientAdapter.onChangeTurn(x -> setGamePanel());
     }
 
     private void setGamePanel() {
         mainPanel.removeAll();
-        mainPanel.add(new GamePanel(clientAdapter));
+        mainPanel.add(new GamePanel(clientAdapter, this::setWaitingPanel));
         pack();
     }
 }

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="BlokusGame:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/BlokusGame_jar</output-path>
+    <root id="archive" name="BlokusGame.jar">
+      <element id="module-output" name="BlokusGame" />
+    </root>
+  </artifact>
+</component>
