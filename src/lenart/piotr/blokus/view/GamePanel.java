@@ -51,12 +51,8 @@ public class GamePanel extends JPanel {
 
         board.setOnClickListener((position, puzzle) -> {
             errorMessage.setText("");
-            try {
-                if (turn == playerIndex)
-                    clientAdapter.placePuzzle(puzzle, position);
-            } catch (WrongActionException e) {
-                errorMessage.setText(e.getTextToDisplay());
-            }
+            if (turn == playerIndex)
+                clientAdapter.placePuzzle(puzzle, position);
         });
 
         clientAdapter.onChangeTurn(turn -> {

@@ -2,11 +2,12 @@ package lenart.piotr.blokus.engine.puzzle;
 
 import lenart.piotr.blokus.basic.Vector2i;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SimplePuzzle implements IPuzzle{
+public class SimplePuzzle implements IPuzzle, Serializable {
 
     private final Vector2i[] fields;
     private int rotatedRight;

@@ -1,8 +1,9 @@
 package lenart.piotr.blokus.basic;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Vector2i {
+public class Vector2i implements Serializable {
     private int _x;
     private int _y;
 

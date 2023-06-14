@@ -6,6 +6,7 @@ import lenart.piotr.blokus.engine.client.LocalClientAdapter;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
 import lenart.piotr.blokus.engine.game.GameService;
 import lenart.piotr.blokus.engine.game.IGameService;
+import lenart.piotr.blokus.network.Server;
 import lenart.piotr.blokus.view.GameWindow;
 
 public class Main {
@@ -24,10 +25,12 @@ public class Main {
         String nickname = Console.getText("Enter your nickname");
 
         IGameService gameService = new GameService();
+        Server networkServer = new Server(gameService);
         try {
             gameService.setBoardSize(new Vector2i(20, 20));
             gameService.setPlayersCount(maxPlayers);
 
+            networkServer.run();
             LocalClientAdapter localClient = new LocalClientAdapter(nickname, gameService);
 
             GameWindow window = new GameWindow(localClient);
@@ -43,9 +46,11 @@ public class Main {
                     System.out.println(e.getTextToDisplay());
                 }
             }
+            networkServer.stop();
         }
         catch (WrongActionException e) {
             System.out.println(e.getTextToDisplay());
+            networkServer.stop();
         }
     }
 
