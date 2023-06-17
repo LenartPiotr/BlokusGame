@@ -1,12 +1,5 @@
 package lenart.piotr.blokus.engine.game.endgame;
 
-public record EndgameClientData(String name, int points) {
+import java.io.Serializable;
 
-    public String getName() {
-        return name;
-    }
-
-    public int getPoints() {
-        return points;
-    }
-}
+public record EndgameClientData(String name, int points) implements Serializable { }

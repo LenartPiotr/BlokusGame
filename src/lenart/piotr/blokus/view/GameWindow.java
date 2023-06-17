@@ -1,16 +1,16 @@
 package lenart.piotr.blokus.view;
 
-import lenart.piotr.blokus.engine.client.IClientAdapter;
+import lenart.piotr.blokus.engine.client.IClient;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class GameWindow extends JFrame{
-    private final IClientAdapter clientAdapter;
+    private final IClient client;
     private JPanel mainPanel;
 
-    public GameWindow(IClientAdapter clientAdapter) {
-        this.clientAdapter = clientAdapter;
+    public GameWindow(IClient client) {
+        this.client = client;
 
         setTitle("Blokus game");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -25,14 +25,14 @@ public class GameWindow extends JFrame{
 
     private void setWaitingPanel() {
         mainPanel.removeAll();
-        mainPanel.add(new WaitingPanel(clientAdapter));
+        mainPanel.add(new WaitingPanel(client));
         pack();
-        clientAdapter.onChangeTurn(x -> setGamePanel());
+        client.on("startGame", ignored -> setGamePanel());
     }
 
     private void setGamePanel() {
         mainPanel.removeAll();
-        mainPanel.add(new GamePanel(clientAdapter, this::setWaitingPanel));
+        mainPanel.add(new GamePanel(client, this::setWaitingPanel));
         pack();
     }
 }

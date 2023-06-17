@@ -1,10 +1,11 @@
 package lenart.piotr.blokus.engine.game.endgame;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class EndgameData {
+public class EndgameData implements Serializable {
     private final List<EndgameClientData> data;
 
     public EndgameData(){

@@ -23,7 +23,7 @@ public class EndgamePanel extends JPanel {
         add(title);
 
         for (int i = 0; i < data.count(); i++) {
-            JLabel result = new JLabel(data.get(i).getName() + " - " + data.get(i).getPoints());
+            JLabel result = new JLabel(data.get(i).name() + " - " + data.get(i).points());
             add(result);
         }
 

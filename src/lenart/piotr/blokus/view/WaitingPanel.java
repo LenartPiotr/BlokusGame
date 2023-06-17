@@ -1,6 +1,6 @@
 package lenart.piotr.blokus.view;
 
-import lenart.piotr.blokus.engine.client.IClientAdapter;
+import lenart.piotr.blokus.engine.client.IClient;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
 
 import javax.swing.*;
@@ -10,26 +10,42 @@ public class WaitingPanel extends JPanel {
     private JPanel mainPanel;
     private JLabel label1;
     private JPanel listPanel;
-    private final IClientAdapter clientAdapter;
-    private final int maxUsers;
+    private final IClient client;
+    private int maxUsers;
     private int users;
 
-    public WaitingPanel(IClientAdapter clientAdapter) {
-        this.clientAdapter = clientAdapter;
-        maxUsers = clientAdapter.getMaxPlayersCount();
-        users = clientAdapter.getPlayersCount();
+    private String[] nicks;
 
-        clientAdapter.onChangePlayerCount(newCount -> {
-            users = newCount;
-            refillClientsList();
-            refillMainLabel();
-        });
+    public WaitingPanel(IClient client) {
+        this.client = client;
+        setupClientCallbacks();
+
+        users = 0;
+        maxUsers = 0;
+
+        client.invoke("getMaxPlayersCount", 0);
+        client.invoke("getPlayersCount", 0);
 
         add(mainPanel);
 
         label1.setText("waiting for host...");
         refillMainLabel();
-        refillClientsList();
+    }
+
+    private void setupClientCallbacks() {
+        client.on("setMaxPlayersCount", data -> {
+            maxUsers = (int) data;
+            refillMainLabel();
+        });
+        client.on("setPlayersCount", data -> {
+            users = (int) data;
+            refillMainLabel();
+            client.invoke("getPlayersNicks", 0);
+        });
+        client.on("setPlayersNicks", data -> {
+            nicks = (String[]) data;
+            refillClientsList();
+        });
     }
 
     private void refillMainLabel() {
@@ -41,12 +57,10 @@ public class WaitingPanel extends JPanel {
         listPanel.setLayout(new GridLayout());
         for (int i = 0; i < users; i++) {
             JLabel label = new JLabel();
-            try {
-                label.setText(clientAdapter.getPlayerName(i));
-            } catch (WrongActionException e) {
-                label.setText("Cannot get nick of this player");
-            }
+            label.setText(nicks[i]);
             listPanel.add(label);
         }
+        listPanel.revalidate();
+        listPanel.repaint();
     }
 }

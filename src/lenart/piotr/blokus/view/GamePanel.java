@@ -2,8 +2,8 @@ package lenart.piotr.blokus.view;
 
 import lenart.piotr.blokus.basic.ICallback0;
 import lenart.piotr.blokus.basic.Vector2i;
-import lenart.piotr.blokus.engine.client.IClientAdapter;
-import lenart.piotr.blokus.engine.exceptions.WrongActionException;
+import lenart.piotr.blokus.engine.game.GameService;
+import lenart.piotr.blokus.engine.client.IClient;
 import lenart.piotr.blokus.engine.game.endgame.EndgameData;
 import lenart.piotr.blokus.engine.puzzle.IPuzzle;
 
@@ -16,69 +16,153 @@ import java.util.List;
 
 public class GamePanel extends JPanel {
     private JPanel mainPanel;
+    private JPanel contentPanel;
+    private JPanel boardPanel;
+    private JPanel puzzleMainPanel;
+
     private JLabel errorMessage;
     private JLabel turnLabel;
     private Board board;
     private List<JPanel> userPuzzlePanels;
-    private JPanel contentPanel;
 
-    private final JLabel[] playersNick;
-    private final int playerIndex;
-    private final int playersCount;
-    private final boolean[] surrender;
+    private JLabel[] playersNick;
+    private int playerIndex;
+    private int playersCount;
+    private boolean[] surrender;
+    private String[] playersNames;
 
     private final ICallback0 onExit;
 
     private int turn;
 
-    private final IClientAdapter clientAdapter;
+    private final IClient client;
 
-    public GamePanel(IClientAdapter clientAdapter, ICallback0 onExit) {
-        this.clientAdapter = clientAdapter;
+    public GamePanel(IClient client, ICallback0 onExit) {
+        this.client = client;
         this.onExit = onExit;
-        playerIndex = clientAdapter.getIndex();
-        playersCount = clientAdapter.getMaxPlayersCount();
-        playersNick = new JLabel[playersCount];
-        surrender = new boolean[playersCount];
-        for (int i = 0; i < playersCount; i++) {
-            surrender[i] = false;
-        }
-        turn = 0;
+
+        setupClientCallbacks();
 
         initializeComponents();
+
+        client.invoke("getIndex", 0);
+        client.invoke("getMaxPlayersCount", 0);
+
+        playersCount = 0;
+
+        playersNick = new JLabel[playersCount];
+        surrender = new boolean[playersCount];
+        playersNames = new String[playersCount];
+        turn = 0;
 
         add(mainPanel);
 
         board.setOnClickListener((position, puzzle) -> {
             errorMessage.setText("");
             if (turn == playerIndex)
-                clientAdapter.placePuzzle(puzzle, position);
+                client.invoke("placePuzzle", new GameService.PuzzlePlaceRecord(playerIndex, position, puzzle));
         });
+    }
 
-        clientAdapter.onChangeTurn(turn -> {
-            try {
-                this.turn = turn;
-                turnLabel.setText("Turn: " + clientAdapter.getPlayerName(turn));
-            } catch (WrongActionException e) {
-                errorMessage.setText(e.getTextToDisplay());
+    private void playerUpdateNick(int index, String newNick) {
+        // UPDATE + CHECK INDEX
+    }
+
+    private void setupClientCallbacks() {
+        client.on("setIndex", data -> {
+            playerIndex = (int) data;
+            // UPDATE
+        });
+        client.on("setMaxPlayersCount", data -> {
+            playersCount = (int) data;
+            playersNick = new JLabel[playersCount];
+            surrender = new boolean[playersCount];
+            playersNames = new String[playersCount];
+            for (int i = 0; i < playersCount; i++) {
+                surrender[i] = false;
+                playersNames[i] = "???";
             }
+            client.invoke("getPlayersNicks", 0);
+            // UPDATE
         });
-
-        clientAdapter.onPlayerGaveUp(p -> {
+        client.on("setPlayersNicks", data -> {
+            String[] nicks = (String[]) data;
+            for (int i = 0; i < nicks.length; i++) {
+                playerUpdateNick(i, nicks[i]);
+            }
+            setupUsersPuzzlePanels();
+        });
+        client.on("wrongAction", data -> {
+            String text = (String) data;
+            errorMessage.setText(text);
+        });
+        client.on("placePuzzle", data -> {
+            GameService.PuzzlePlaceRecord record = (GameService.PuzzlePlaceRecord) data;
+            board.placePuzzle(record.puzzle(), record.playerIndex(), record.position());
+            client.invoke("getPuzzleList", record.playerIndex());
+            // UPDATE
+        });
+        client.on("setPuzzleList", data -> {
+            GameService.PlayerPuzzleListRecord record = (GameService.PlayerPuzzleListRecord) data;
+            int index = record.playerIndex();
+            if (index < playersCount) {
+                setPuzzlesView(userPuzzlePanels.get(index), record.puzzles(), index == playerIndex, index);
+            }
+            // UPDATE
+        });
+        client.on("changeTurn", data -> {
+            turn = (int) data;
+            if (turn < playersCount)
+                turnLabel.setText("Turn: " + playersNames[turn]);
+            // UPDATE
+        });
+        client.on("playerGiveUp", data -> {
+            int playerIndex = (int) data;
+            // UPDATE
+        });
+        client.on("playerChangeName", data -> {
+            GameService.PlayerChangeNickRecord record = (GameService.PlayerChangeNickRecord) data;
+            if (turn == record.playerIndex()) {
+                turnLabel.setText("Turn: " + record.newNick());
+            }
+            playerUpdateNick(record.playerIndex(), record.newNick());
+        });
+        client.on("playerGiveUp", data -> {
+            int p = (int) data;
             surrender[p] = true;
             playersNick[p].setForeground(Color.gray);
         });
-
-        clientAdapter.onPuzzlePlaced((color, position, puzzle) -> {
-            board.placePuzzle(puzzle, color, position);
-            try {
-                setPuzzlesView(userPuzzlePanels.get(color), clientAdapter.getPuzzleList(color), color == playerIndex, color);
-            } catch (WrongActionException e) {
-                errorMessage.setText(e.getTextToDisplay());
-            }
+        client.on("endgame", data -> {
+            EndgameData endgameData = (EndgameData) data;
+            setEndGame(endgameData);
         });
+    }
 
-        clientAdapter.onEndgame(this::setEndGame);
+    private void createNewBoard(Vector2i size) {
+        boardPanel.removeAll();
+        boardPanel.setLayout(new BoxLayout(boardPanel, BoxLayout.Y_AXIS));
+        board = new Board(size);
+        Dimension boardDimension = new Dimension(401, 401);
+        board.setPreferredSize(boardDimension);
+        board.setMaximumSize(boardDimension);
+        board.setMinimumSize(boardDimension);
+        boardPanel.add(board);
+        boardPanel.revalidate();
+        boardPanel.repaint();
+    }
+
+    private void setupUsersPuzzlePanels() {
+        puzzleMainPanel.removeAll();
+        puzzleMainPanel.setLayout(new BoxLayout(puzzleMainPanel, BoxLayout.X_AXIS));
+        userPuzzlePanels = new ArrayList<>();
+        for (int i = 0; i < playersCount; i++) {
+            JPanel userPuzzlePanel = new JPanel();
+            userPuzzlePanels.add(userPuzzlePanel);
+            puzzleMainPanel.add(userPuzzlePanel);
+            client.invoke("getPuzzleList", i);
+        }
+        puzzleMainPanel.revalidate();
+        puzzleMainPanel.repaint();
     }
 
     private void initializeComponents() {
@@ -89,41 +173,21 @@ public class GamePanel extends JPanel {
         mainPanel.add(header);
 
         turnLabel = new JLabel();
-        try {
-            turnLabel.setText("Turn: " + clientAdapter.getPlayerName(0));
-        } catch (WrongActionException e) {
-            turnLabel.setText("Turn: ???");
-        }
+        turnLabel.setText("Turn: ???");
         header.add(turnLabel);
 
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.X_AXIS));
         mainPanel.add(contentPanel);
 
-        board = new Board(clientAdapter.getBoardSize());
-        Dimension boardDimension = new Dimension(401, 401);
-        board.setPreferredSize(boardDimension);
-        board.setMaximumSize(boardDimension);
-        board.setMinimumSize(boardDimension);
-        contentPanel.add(board);
+        boardPanel = new JPanel();
+        contentPanel.add(boardPanel);
 
-        JPanel puzzleMainPanel = new JPanel();
+        createNewBoard(new Vector2i(1, 1));
+
+        puzzleMainPanel = new JPanel();
         puzzleMainPanel.setLayout(new BoxLayout(puzzleMainPanel, BoxLayout.X_AXIS));
         contentPanel.add(puzzleMainPanel);
-
-        userPuzzlePanels = new ArrayList<>();
-        try {
-            for (int i = 0; i < clientAdapter.getMaxPlayersCount(); i++) {
-                JPanel userPuzzlePanel = new JPanel();
-                setPuzzlesView(userPuzzlePanel, clientAdapter.getPuzzleList(i), i == playerIndex, i);
-                userPuzzlePanels.add(userPuzzlePanel);
-                puzzleMainPanel.add(userPuzzlePanel);
-            }
-        } catch (WrongActionException e) {
-            puzzleMainPanel.removeAll();
-            puzzleMainPanel.setLayout(new BoxLayout(puzzleMainPanel, BoxLayout.X_AXIS));
-            puzzleMainPanel.add(new JLabel(e.getTextToDisplay()));
-        }
 
         JPanel footer = new JPanel();
         footer.setLayout(new BoxLayout(footer, BoxLayout.X_AXIS));
@@ -152,11 +216,7 @@ public class GamePanel extends JPanel {
         JButton surrenderButton = new JButton("Surrender");
         surrenderButton.addActionListener(action -> {
             if (turn == playerIndex) {
-                try {
-                    clientAdapter.giveUp();
-                } catch (WrongActionException e) {
-                    errorMessage.setText(e.getTextToDisplay());
-                }
+                client.invoke("giveUp", playerIndex);
             }
         });
         footer.add(surrenderButton);
@@ -169,10 +229,10 @@ public class GamePanel extends JPanel {
         contentPanel.repaint();
     }
 
-    private void setPuzzlesView(JPanel panel, List<IPuzzle> list, boolean onclick, int index) throws WrongActionException {
+    private void setPuzzlesView(JPanel panel, List<IPuzzle> list, boolean onclick, int index) {
         panel.removeAll();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        JLabel playerNick = new JLabel(clientAdapter.getPlayerName(index));
+        JLabel playerNick = new JLabel(playersNames[index]);
         if (surrender[index]) playerNick.setForeground(Color.gray);
         playersNick[index] = playerNick;
         panel.add(playerNick);

@@ -6,12 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientData {
-    private final List<IPuzzle> puzzles;
+    private List<IPuzzle> puzzles;
     private boolean pass;
+    private String name;
 
-    public ClientData(List<IPuzzle> puzzles){
-        this.puzzles = puzzles;
+    public ClientData(){
+        this.puzzles = new ArrayList<>();
         pass = false;
+    }
+
+    public void setNewPuzzles(List<IPuzzle> puzzles) {
+        this.puzzles = puzzles;
     }
 
     public int pointsLeft() {
@@ -40,5 +45,13 @@ public class ClientData {
 
     public boolean passed(){
         return pass;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }

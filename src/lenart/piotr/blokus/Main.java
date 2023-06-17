@@ -2,6 +2,7 @@ package lenart.piotr.blokus;
 
 import lenart.piotr.blokus.basic.Vector2i;
 import lenart.piotr.blokus.console.Console;
+import lenart.piotr.blokus.engine.client.IClient;
 import lenart.piotr.blokus.engine.client.LocalClientAdapter;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
 import lenart.piotr.blokus.engine.game.GameService;
@@ -31,9 +32,14 @@ public class Main {
             gameService.setPlayersCount(maxPlayers);
 
             networkServer.run();
-            LocalClientAdapter localClient = new LocalClientAdapter(nickname, gameService);
+            LocalClientAdapter localClient = new LocalClientAdapter(nickname);
 
-            GameWindow window = new GameWindow(localClient);
+            IClient hostClient = localClient.getHost();
+            IClient viewClient = localClient.getClient();
+
+            gameService.registerClient(hostClient);
+
+            GameWindow window = new GameWindow(viewClient);
 
             boolean endWhile = false;
             while (!endWhile) {

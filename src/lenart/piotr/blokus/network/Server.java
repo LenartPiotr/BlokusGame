@@ -18,7 +18,7 @@ public class Server {
                 try {
                     while (!thread.isInterrupted()) {
                         Socket client = serverSocket.accept();
-                        new NetGameClient(client, gameService);
+                        // TODO
                     }
                 } catch (IOException ignored) { }
                 System.out.println("Server stopped");
