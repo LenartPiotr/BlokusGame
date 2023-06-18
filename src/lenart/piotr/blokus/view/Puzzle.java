@@ -23,7 +23,7 @@ public class Puzzle extends JPanel {
     private Color getColor(int index) {
         return switch (index) {
             case 0 -> Color.red;
-            case 1 -> Color.yellow;
+            case 1 -> Color.orange;
             case 2 -> Color.green;
             case 3 -> Color.blue;
             default -> Color.magenta;

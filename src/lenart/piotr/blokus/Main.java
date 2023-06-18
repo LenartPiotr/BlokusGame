@@ -7,8 +7,12 @@ import lenart.piotr.blokus.engine.client.LocalClientAdapter;
 import lenart.piotr.blokus.engine.exceptions.WrongActionException;
 import lenart.piotr.blokus.engine.game.GameService;
 import lenart.piotr.blokus.engine.game.IGameService;
+import lenart.piotr.blokus.network.Client;
 import lenart.piotr.blokus.network.Server;
 import lenart.piotr.blokus.view.GameWindow;
+
+import java.io.IOException;
+import java.net.Socket;
 
 public class Main {
 
@@ -64,6 +68,24 @@ public class Main {
     }
 
     public static void client() {
-        //
+        String nick = Console.getText("Enter your nick");
+        String address = Console.getText("Enter IP address");
+        int port = Console.getInt("Enter port");
+        Socket socket;
+        Client client;
+        try {
+            socket = new Socket(address, port);
+            client = new Client(socket);
+        } catch (IOException e) {
+            System.out.println("Cannot connect");
+            return;
+        }
+        client.on("getName", data -> {
+            client.invoke("setName", nick);
+        });
+        client.listen();
+        GameWindow window = new GameWindow(client);
+        Console.getText("Type something to stop client");
+        client.stop();
     }
 }

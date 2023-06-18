@@ -4,10 +4,7 @@ import lenart.piotr.blokus.basic.ICallback0;
 import lenart.piotr.blokus.basic.ICallback1;
 import lenart.piotr.blokus.engine.client.IClient;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +24,10 @@ public class Client implements IClient {
         this.socket = socket;
         this.listeners = new HashMap<>();
 
-        inputStream = new ObjectInputStream(socket.getInputStream());
         outputStream = new ObjectOutputStream(socket.getOutputStream());
+        outputStream.writeObject(new Message("connection", true));
+        outputStream.flush();
+        inputStream = new ObjectInputStream(socket.getInputStream());
         active = true;
 
         this.listeningThread = new Thread(() -> {
@@ -36,20 +35,24 @@ public class Client implements IClient {
                 try {
                     Object obj = inputStream.readObject();
                     Message message = (Message) obj;
+                    // System.out.println("Received (" + message.key + "): " + message.object.toString());
                     if (listeners.containsKey(message.key)) {
                         listeners.get(message.key).run(message.object);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
                     break;
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
                     break;
                 } catch (ClassCastException e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
                     break;
                 } catch (NullPointerException e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
+                    break;
+                } catch (Exception e) {
+                    // e.printStackTrace();
                     break;
                 }
             }
@@ -89,7 +92,8 @@ public class Client implements IClient {
 
     public void stop() {
         if (!active) return;
-        disconnectCallback.run();
+        if (disconnectCallback != null)
+            disconnectCallback.run();
         listeningThread.interrupt();
         try {
             socket.close();

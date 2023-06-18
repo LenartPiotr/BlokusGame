@@ -51,6 +51,11 @@ public class GameService implements IGameService {
         if (getClientIndex(client) != -1) throw new WrongActionException("This client already exists in game");
         clients.add(new PlayerData(client, new ClientData()));
         setupClientCallbacks(client);
+        client.onDisconnect(() -> {
+            try {
+                unregisterClient(client);
+            } catch (WrongActionException ignored) { }
+        });
         client.invoke("getName", 0);
         client.invoke("setIndex", clients.size() - 1);
         broadcast("changePlayerCount", clients.size());
@@ -88,12 +93,13 @@ public class GameService implements IGameService {
         });
         client.on("getPuzzleList", data -> {
             int index = (int) data;
-            if (index < 0 || index >= playersCount) return;
+            if (index < 0 || index >= clients.size()) return;
             client.invoke("setPuzzleList", new PlayerPuzzleListRecord(index, clients.get(index).data.getCopyOfPuzzlesList()));
         });
         client.on("getPlayersNicks", ignored -> {
-            String[] nicks = new String[playersCount];
-            for (int i = 0; i < playersCount; i++) {
+            int count = clients.size();
+            String[] nicks = new String[count];
+            for (int i = 0; i < count; i++) {
                 nicks[i] = clients.get(i).data.getName();
             }
             client.invoke("setPlayersNicks", nicks);

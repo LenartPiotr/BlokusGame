@@ -1,7 +1,7 @@
 package lenart.piotr.blokus.view;
 
 import lenart.piotr.blokus.engine.client.IClient;
-import lenart.piotr.blokus.engine.exceptions.WrongActionException;
+import lenart.piotr.blokus.engine.game.GameService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,9 +42,24 @@ public class WaitingPanel extends JPanel {
             refillMainLabel();
             client.invoke("getPlayersNicks", 0);
         });
+        client.on("changePlayerCount", data -> {
+            users = (int) data;
+            refillMainLabel();
+            client.invoke("getPlayersNicks", 0);
+        });
         client.on("setPlayersNicks", data -> {
             nicks = (String[]) data;
             refillClientsList();
+        });
+        client.on("playerChangeName", data -> {
+            GameService.PlayerChangeNickRecord record = (GameService.PlayerChangeNickRecord) data;
+            int index = record.playerIndex();
+            if (index < (nicks).length) {
+                nicks[index] = record.newNick();
+                refillClientsList();
+            } else {
+                client.invoke("getPlayersCount", 0);
+            }
         });
     }
 

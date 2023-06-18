@@ -57,12 +57,12 @@ public class GamePanel extends JPanel {
         client.invoke("getIndex", 0);
         client.invoke("getMaxPlayersCount", 0);
         client.invoke("getBoardSize", 0);
+    }
 
-        board.setOnClickListener((position, puzzle) -> {
-            errorMessage.setText("");
-            if (turn == playerIndex)
-                client.invoke("placePuzzle", new GameService.PuzzlePlaceRecord(playerIndex, position, puzzle));
-        });
+    private void boardOnClick(Vector2i position, IPuzzle puzzle) {
+        errorMessage.setText("");
+        if (turn == playerIndex)
+            client.invoke("placePuzzle", new GameService.PuzzlePlaceRecord(playerIndex, position, puzzle));
     }
 
     private void playerUpdateNick(int index, String newNick) {
@@ -159,6 +159,8 @@ public class GamePanel extends JPanel {
         boardPanel.add(board);
         boardPanel.revalidate();
         boardPanel.repaint();
+
+        board.setOnClickListener(this::boardOnClick);
     }
 
     private void setupUsersPuzzlePanels() {

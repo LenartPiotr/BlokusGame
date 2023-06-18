@@ -26,7 +26,7 @@ public class Console {
         System.out.print("> ");
         int x;
         try {
-            x = s.nextInt() - 1;
+            x = s.nextInt();
         }catch (InputMismatchException e) {
             x = 0;
         }
