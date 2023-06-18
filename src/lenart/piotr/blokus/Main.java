@@ -57,6 +57,9 @@ public class Main {
         catch (WrongActionException e) {
             System.out.println(e.getTextToDisplay());
             networkServer.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+            networkServer.stop();
         }
     }
 

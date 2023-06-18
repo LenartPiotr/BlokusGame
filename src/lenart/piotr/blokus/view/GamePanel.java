@@ -45,9 +45,6 @@ public class GamePanel extends JPanel {
 
         initializeComponents();
 
-        client.invoke("getIndex", 0);
-        client.invoke("getMaxPlayersCount", 0);
-
         playersCount = 0;
 
         playersNick = new JLabel[playersCount];
@@ -57,6 +54,10 @@ public class GamePanel extends JPanel {
 
         add(mainPanel);
 
+        client.invoke("getIndex", 0);
+        client.invoke("getMaxPlayersCount", 0);
+        client.invoke("getBoardSize", 0);
+
         board.setOnClickListener((position, puzzle) -> {
             errorMessage.setText("");
             if (turn == playerIndex)
@@ -65,13 +66,17 @@ public class GamePanel extends JPanel {
     }
 
     private void playerUpdateNick(int index, String newNick) {
-        // UPDATE + CHECK INDEX
+        if (index < playersCount) {
+            playersNames[index] = newNick;
+            playersNick[index].setText(newNick);
+            updateTurnNick();
+        }
     }
 
     private void setupClientCallbacks() {
         client.on("setIndex", data -> {
             playerIndex = (int) data;
-            // UPDATE
+            updateTurnNick();
         });
         client.on("setMaxPlayersCount", data -> {
             playersCount = (int) data;
@@ -82,15 +87,15 @@ public class GamePanel extends JPanel {
                 surrender[i] = false;
                 playersNames[i] = "???";
             }
+            setupUsersPuzzlePanels();
             client.invoke("getPlayersNicks", 0);
-            // UPDATE
         });
         client.on("setPlayersNicks", data -> {
             String[] nicks = (String[]) data;
+            setupUsersPuzzlePanels();
             for (int i = 0; i < nicks.length; i++) {
                 playerUpdateNick(i, nicks[i]);
             }
-            setupUsersPuzzlePanels();
         });
         client.on("wrongAction", data -> {
             String text = (String) data;
@@ -100,7 +105,6 @@ public class GamePanel extends JPanel {
             GameService.PuzzlePlaceRecord record = (GameService.PuzzlePlaceRecord) data;
             board.placePuzzle(record.puzzle(), record.playerIndex(), record.position());
             client.invoke("getPuzzleList", record.playerIndex());
-            // UPDATE
         });
         client.on("setPuzzleList", data -> {
             GameService.PlayerPuzzleListRecord record = (GameService.PlayerPuzzleListRecord) data;
@@ -108,17 +112,10 @@ public class GamePanel extends JPanel {
             if (index < playersCount) {
                 setPuzzlesView(userPuzzlePanels.get(index), record.puzzles(), index == playerIndex, index);
             }
-            // UPDATE
         });
         client.on("changeTurn", data -> {
             turn = (int) data;
-            if (turn < playersCount)
-                turnLabel.setText("Turn: " + playersNames[turn]);
-            // UPDATE
-        });
-        client.on("playerGiveUp", data -> {
-            int playerIndex = (int) data;
-            // UPDATE
+            updateTurnNick();
         });
         client.on("playerChangeName", data -> {
             GameService.PlayerChangeNickRecord record = (GameService.PlayerChangeNickRecord) data;
@@ -129,13 +126,26 @@ public class GamePanel extends JPanel {
         });
         client.on("playerGiveUp", data -> {
             int p = (int) data;
-            surrender[p] = true;
-            playersNick[p].setForeground(Color.gray);
+            playerGiveUp(p);
         });
         client.on("endgame", data -> {
             EndgameData endgameData = (EndgameData) data;
             setEndGame(endgameData);
         });
+        client.on("setBoardSize", data -> {
+            Vector2i size = (Vector2i) data;
+            createNewBoard(size);
+        });
+    }
+
+    private void updateTurnNick() {
+        if (turn < playersCount)
+            turnLabel.setText("Turn: " + playersNames[turn]);
+    }
+
+    private void playerGiveUp(int index) {
+        surrender[index] = true;
+        playersNick[index].setForeground(Color.gray);
     }
 
     private void createNewBoard(Vector2i size) {

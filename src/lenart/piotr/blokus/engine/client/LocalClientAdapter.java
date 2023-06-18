@@ -22,6 +22,9 @@ public class LocalClientAdapter {
         hostToClient.on("getName", data -> {
             hostToClient.invoke("setName", nick);
         });
+        clientToHost.on("getName", data -> {
+            clientToHost.invoke("setName", nick);
+        });
     }
 
     public IClient getClient() {

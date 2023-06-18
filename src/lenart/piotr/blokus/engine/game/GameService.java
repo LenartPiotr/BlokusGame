@@ -105,6 +105,9 @@ public class GameService implements IGameService {
                 client.invoke("wrongAction", e.getTextToDisplay());
             }
         });
+        client.on("getBoardSize", ignored -> {
+            client.invoke("setBoardSize", boardSize);
+        });
     }
 
     private int getClientIndex(IClient client){
